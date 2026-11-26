@@ -32,7 +32,7 @@ export function BookGrid({ books, searchParams }: { books: BookSummary[]; search
       {books.map((book, index) => (
         <BookCard
           book={book}
-          eagerPrefetch={eagerPrefetch}
+          eagerPrefetch={eagerPrefetch && index < PRIORITY_COVER_COUNT}
           key={book.id}
           priority={index < PRIORITY_COVER_COUNT}
           searchParams={searchParams}

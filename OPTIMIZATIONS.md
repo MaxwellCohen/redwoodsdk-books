@@ -1,0 +1,12 @@
+# Optimizations (`optimized` branch)
+
+RedwoodSDK ships few built-in speed features: no image component, no font loader, no CSS inlining, no data cache, no prerendering or ISR. It does ship streaming SSR and RSC client navigation (already on in `main`), plus a prefetch cache for that navigation. So most changes below are hand-written, copied from the other optimized ports.
+
+| Change | Type | Where |
+| --- | --- | --- |
+| Navigation prefetch: links marked `prefetch` render `<link rel="x-prefetch">`. RedwoodSDK then fetches those RSC payloads into its client navigation cache after hydration and after each navigation, so a click needs no network round trip. Covers the home link, pagination and the first 10 covers on page 1. | Framework feature | `src/components/ui/fast-link.tsx`, `src/features/book/components/book-grid.tsx` |
+| Streaming SSR and RSC client navigation | Framework feature, unchanged from `main` | `src/worker.tsx`, `src/client.tsx` |
+| Self-hosted Geist fonts through Fontsource, replacing Google Fonts. Vite bundles them with the hashed CSS, which removes two third-party connections and a render-blocking stylesheet. | Hand-written (npm package) | `src/styles.css`, `src/app/document.tsx` |
+| Catalog query cache with a 1 hour TTL (like Next `cacheLife('hours')`). It has an in-memory layer with in-flight dedupe, then a shared store: Workers KV (`CATALOG_CACHE`) on Cloudflare, Vercel Runtime Cache (`@vercel/functions`) on Vercel and Netlify Blobs on Netlify. It falls back to the Workers Cache API. | Hand-written | `src/lib/catalog-cache.ts`, `src/features/book/book-queries.ts`, `src/worker.tsx`, `hosting/vercel-entry.mjs`, `netlify/functions/server.mjs` |
+| The home grid renders in the first HTML flush, not behind a Suspense fallback. The first covers get `<link rel="preload" as="image">` (the first one with `fetchpriority="high"`). The book page does the same for its cover. | Hand-written | `src/app/pages/home.tsx`, `src/app/pages/book.tsx`, `src/features/book/components/book-detail.tsx` |
+| Immutable `Cache-Control` for hashed `/assets/*`: through `_headers` (Cloudflare static assets), `netlify.toml` (Netlify) and the Build Output API routes (Vercel). | Hand-written host config | `public/_headers`, `netlify.toml`, `hosting/build-vercel.mjs` |

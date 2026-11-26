@@ -10,10 +10,16 @@ type Props = Omit<ComponentProps<'a'>, 'children' | 'href'> & {
 };
 
 // RedwoodSDK intercepts same-origin <a> clicks and turns them into RSC navigations.
-export function FastLink({ children = null, href, prefetch: _prefetch, ...props }: Props) {
+// <link rel="x-prefetch"> asks RedwoodSDK to warm its client navigation cache for that URL.
+export function FastLink({ children = null, href, prefetch, ...props }: Props) {
+  const target = hrefToTarget(href);
+
   return (
-    <a {...props} href={hrefToTarget(href)}>
-      {children}
-    </a>
+    <>
+      {prefetch === true ? <link href={target} rel="x-prefetch" /> : null}
+      <a {...props} href={target}>
+        {children}
+      </a>
+    </>
   );
 }

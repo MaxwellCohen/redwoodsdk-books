@@ -1,5 +1,6 @@
 import { layout, render, route } from 'rwsdk/router';
 import { defineApp } from 'rwsdk/worker';
+import { bindCatalogStore } from '@/lib/catalog-cache';
 
 import { Document } from '@/app/document';
 import { Layout } from '@/app/layout';
@@ -10,7 +11,7 @@ import { trimTrailingSlash } from '@/app/trailing-slash';
 
 export type AppContext = object;
 
-export default defineApp([
+const app = defineApp([
   trimTrailingSlash(),
   render(Document, [
     layout(Layout, [
@@ -23,3 +24,17 @@ export default defineApp([
     ]),
   ]),
 ]);
+
+export default {
+  ...app,
+  fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    const kv = env.CATALOG_CACHE;
+    if (kv) {
+      bindCatalogStore({
+        get: key => kv.get(key, 'json'),
+        put: (key, value, ttlSeconds) => kv.put(key, JSON.stringify(value), { expirationTtl: ttlSeconds }),
+      });
+    }
+    return app.fetch(request, env, ctx);
+  },
+};

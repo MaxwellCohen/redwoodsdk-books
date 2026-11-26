@@ -1,12 +1,13 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "redwoodsdk-books",
+  "name": "redwoodsdk-books-optimized",
   "main": "src/worker.tsx",
   "compatibility_date": "2026-08-01",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "binding": "ASSETS",
   },
+  "kv_namespaces": [{ "binding": "CATALOG_CACHE", "id": "d7ad2bb73b884565bb00f840e6ec1672" }],
   "observability": {
     "enabled": true,
   },
