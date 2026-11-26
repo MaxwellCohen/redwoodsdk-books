@@ -1,0 +1,12 @@
+# pnpm 11 no longer reads the package.json "pnpm" field; these projects are
+# also installed standalone (tarball E2E envs, create-rwsdk output), so they
+# carry their own build-script approvals.
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
+
+overrides:
+  react: 19.3.0
+  react-dom: 19.3.0
+  react-server-dom-webpack: 19.3.0
