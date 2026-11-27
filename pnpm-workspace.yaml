@@ -10,3 +10,9 @@ overrides:
   react: 19.3.0
   react-dom: 19.3.0
   react-server-dom-webpack: 19.3.0
+
+# pnpm 11+ (what Netlify installs with) refuses lockfile entries younger than
+# minimumReleaseAge (1 day). These were locked within a day of their release.
+minimumReleaseAgeExclude:
+  - '@netlify/blobs@11.1.12'
+  - '@vercel/speed-insights@2.1.1'
