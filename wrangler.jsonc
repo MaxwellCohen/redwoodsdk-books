@@ -7,7 +7,6 @@
   "assets": {
     "binding": "ASSETS",
   },
-  "kv_namespaces": [{ "binding": "CATALOG_CACHE", "id": "d7ad2bb73b884565bb00f840e6ec1672" }],
   "observability": {
     "enabled": true,
   },

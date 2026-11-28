@@ -1,6 +1,5 @@
 import { layout, render, route } from 'rwsdk/router';
 import { defineApp, type RequestInfo } from 'rwsdk/worker';
-import { bindCatalogStore } from '@/lib/catalog-cache';
 
 import { Document } from '@/app/document';
 import { Layout } from '@/app/layout';
@@ -41,13 +40,6 @@ const app = defineApp([
 export default {
   ...app,
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
-    const kv = env.CATALOG_CACHE;
-    if (kv) {
-      bindCatalogStore({
-        get: key => kv.get(key, 'json'),
-        put: (key, value, ttlSeconds) => kv.put(key, JSON.stringify(value), { expirationTtl: ttlSeconds }),
-      });
-    }
     const response = await app.fetch(request, env, ctx);
     // A render error turns the page into a 500 that still carries the route's headers.
     if (response.status >= 400 && response.headers.get('Cache-Control')?.includes('s-maxage')) {

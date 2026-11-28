@@ -1,7 +1,7 @@
 /** Matches Next `cacheLife('hours')`: revalidate 1h. */
 export const CATALOG_CACHE_TTL_SECONDS = 3600;
 
-/** Host-provided shared store: Workers KV, Vercel Runtime Cache or Netlify Blobs. */
+/** Host-provided shared store: Vercel Runtime Cache or Netlify Blobs. */
 export type CatalogStore = {
   get(key: string): Promise<unknown>;
   put(key: string, value: unknown, ttlSeconds: number): Promise<void>;
@@ -13,13 +13,10 @@ const TTL_MS = CATALOG_CACHE_TTL_SECONDS * 1000;
 const memory = new Map<string, Entry<unknown>>();
 const inflight = new Map<string, Promise<unknown>>();
 
-let boundStore: CatalogStore | undefined;
-
-export function bindCatalogStore(store: CatalogStore | undefined) {
-  if (store) boundStore = store;
-}
-
-/** Falls back to the Workers Cache API (per-colo) when no shared store is bound. */
+/**
+ * Cloudflare uses the Workers Cache API (free, per-colo) rather than KV, whose free tier caps
+ * writes at 1,000/day. Also the fallback when no host store is registered.
+ */
 const edgeCacheStore: CatalogStore = {
   async get(key) {
     const cache = (globalThis as { caches?: CacheStorage & { default?: Cache } }).caches?.default;
@@ -42,9 +39,7 @@ function edgeRequest(key: string) {
 }
 
 function store(): CatalogStore {
-  return (
-    boundStore ?? (globalThis as { __BOOKS_CATALOG_STORE__?: CatalogStore }).__BOOKS_CATALOG_STORE__ ?? edgeCacheStore
-  );
+  return (globalThis as { __BOOKS_CATALOG_STORE__?: CatalogStore }).__BOOKS_CATALOG_STORE__ ?? edgeCacheStore;
 }
 
 async function cached<T>(key: string, load: () => Promise<T>): Promise<T> {
